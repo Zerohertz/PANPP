@@ -3,6 +3,7 @@ import cv2
 import torch
 cimport numpy as np
 cimport cython
+from cython.parallel import prange
 
 
 @cython.boundscheck(False)
@@ -32,7 +33,7 @@ cdef np.ndarray[np.int32_t, ndim=2] _boxgen(np.ndarray[np.int32_t, ndim=2] label
     cdef tuple pos_t, length_t
     
 #     print(H*W) -> 376832
-    for i in range(H):
+    for i in prange(H, nogil=True):
         for j in range(W):
             tmp = label[i, j]
             if tmp == 0:
@@ -81,7 +82,8 @@ cdef np.ndarray[np.int32_t, ndim=2] _boxgen(np.ndarray[np.int32_t, ndim=2] label
         length += len_const
         pos, length = pos*scale, length*scale
         bbox = cv2.boxPoints((pos, length, deg))
-        bboxes = np.append(bboxes, bbox.astype('int32').reshape(1, 4, 2), axis=0)
+#        bboxes = np.append(bboxes, bbox.astype('int32').reshape(1, 4, 2), axis=0)
+        bboxes = np.append(bboxes, np.round(bbox, 2).reshape(1, 4, 2), axis=0)
         tmp += int(area[i])
     return bboxes
 

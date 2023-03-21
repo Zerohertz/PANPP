@@ -1,102 +1,186 @@
-# PAN++
-
-+ [Speed Improvement of PAN++](https://github.com/Zerohertz/pan_pp.pytorch/tree/SpeedImprovement)
-+ [TensorRT](https://github.com/Zerohertz/PANPP/tree/TensorRT)
-
-> Train
+# TensorRT
 
 ```shell
-# Compile Cython
-cd ./models/post_processing/pa/
-python setup.py build_ext --inplace
-cd ../boxgen/
-python setup.py build_ext --inplace
-cd ../../../
-echo Done!
-
-CUDA_VISIBLE_DEVICES=${CUDA_NUM} python train.py config/pan_pp_test.py
+$ CUDA_VISIBLE_DEVICES=${CUDA_NUM} python TensorRT.py
+$ tree
+├── test.engine
+├── test.onnx
+├── test_inf.onnx
+├── test.pth
+└── test.trt
 ```
 
-> Test
+![Results](https://user-images.githubusercontent.com/42334717/226349286-c6dbcf24-67ff-459d-8203-6c6b3af27230.png)
 
-```shell
-# Compile Cython
-cd ./models/post_processing/pa/
-python setup.py build_ext --inplace
-cd ../boxgen/
-python setup.py build_ext --inplace
-cd ../../../
-echo Done!
-
-# Setup
-nvidia-smi
-read -p 'CUDA_NUM: ' CUDA_NUM
-
-# Initialization
-cd outputs
-rm -rf 20*
-cd ..
-cd results/time
-rm -rf tmp.csv
-cd ..
-cd ..
-
-# cfg=pan_pp_TwinReader
-cfg=pan_pp_test
-
-# Execution
-exe(){
-    ## Test
-    read -p "Exp Name: " tmp
-    echo "Exp Name: " $tmp
-    CUDA_VISIBLE_DEVICES=${CUDA_NUM} python test.py config/$cfg.py
-    
-    ## Rename tmp.csv & Make time.csv
-    cd results/time
-    rm -rf $tmp.csv
-    mv ./tmp.csv ./$tmp.csv
-    python Time_Measurement.py
-    cd ..
-    cd ..
-    
-    ## Rename outputs
-    cd outputs
-    rm -rf $tmp
-    mv ./20* ./$tmp
-    cd ..
-    
-    ## Move Cfg
-    cp ./config/$cfg.py ./outputs/$tmp/
-    
-    ## Evaluation
-    cd results/evaluation
-    rm -rf $tmp.csv
-    cd CLEval_1024
-    python prepare.py --path=$tmp
-    python script.py --path=$tmp
-    cd ..
-    cd ..
-    cd ..
-}
-
-exe
-```
-
-> Make Ground Truth
-
-```shell
-cd outputs
-rm -rf 20*
-rm -rf Ground_Truth
-cd ..
-
-python makeGT.py
-
-cd outputs
-mv ./20* ./Ground_Truth
-cd ..
-```
+||HMean|Precision|Recall|Time|
+|:-:|:-:|:-:|:-:|:-:|
+|PyTorch|96.756 [%]|96.378 [%]|97.136 [%]|15.478 [ms]|
+|TensorRT|96.756 [%]|96.381 [%]|97.135 [%]|1.964 [ms]|
+|Difference|0.001 [%p]|0.003 [%p]|-0.001 [%p]|-13.514 [ms]|
+|Percentage|0.001 [%]|0.003 [%]|-0.002 [%]|-87.313 [%]|
 
 ---
 
-> [Reference](https://github.com/whai362/pan_pp.pytorch)
+<details>
+<summary>Read more</summary>
+<div>
+
+## News
+- (2022/12/08) We will release the code and models of FAST in [link](https://github.com/czczup/FAST).
+- (2022/10/09) We release stabler code for PAN++, see [pan_pp_stable](https://github.com/whai362/pan_pp_stable).
+- (2022/04/22) Update PAN++ ICDAR 2015 joint training & post-processing with vocabulary & visualization code.
+- (2021/11/03) Paddle implementation of PAN, see [Paddle-PANet](https://github.com/simplify23/Paddle-PANet). Thanks @simplify23.
+- (2021/04/08) PSENet and PAN are included in [MMOCR](https://github.com/open-mmlab/mmocr).
+
+## Introduction
+This repository contains the official implementations of [PSENet](https://openaccess.thecvf.com/content_CVPR_2019/html/Wang_Shape_Robust_Text_Detection_With_Progressive_Scale_Expansion_Network_CVPR_2019_paper.html), [PAN](https://openaccess.thecvf.com/content_ICCV_2019/html/Wang_Efficient_and_Accurate_Arbitrary-Shaped_Text_Detection_With_Pixel_Aggregation_Network_ICCV_2019_paper.html), [PAN++](https://arxiv.org/abs/2105.00405).
+
+<details open>
+<summary>Text Detection</summary>
+
+- [x] [PSENet (CVPR'2019)](config/psenet/)
+- [x] [PAN (ICCV'2019)](config/pan/)
+- [x] [FAST (Arxiv'2021)](config/fast/)
+</details>
+
+<details open>
+<summary>Text Spotting</summary>
+
+- [x] [PAN++ (TPAMI'2021)](config/pan_pp)
+
+</details>
+
+## Installation
+
+First, clone the repository locally:
+
+```shell
+git clone https://github.com/whai362/pan_pp.pytorch.git
+```
+
+Then, install PyTorch 1.1.0+, torchvision 0.3.0+, and other requirements:
+
+```shell
+conda install pytorch torchvision -c pytorch
+pip install -r requirement.txt
+```
+
+Finally, compile codes of post-processing:
+
+```shell
+# build pse and pa algorithms
+sh ./compile.sh
+```
+
+## Dataset
+Please refer to [dataset/README.md](dataset/README.md) for dataset preparation.
+
+## Training
+```shell
+CUDA_VISIBLE_DEVICES=0,1,2,3 python train.py ${CONFIG_FILE}
+```
+For example:
+```shell
+CUDA_VISIBLE_DEVICES=0,1,2,3 python train.py config/pan/pan_r18_ic15.py
+```
+
+## Testing
+
+### Evaluate the performance
+
+```shell
+python test.py ${CONFIG_FILE} ${CHECKPOINT_FILE}
+cd eval/
+./eval_{DATASET}.sh
+```
+For example:
+```shell
+python test.py config/pan/pan_r18_ic15.py checkpoints/pan_r18_ic15/checkpoint.pth.tar
+cd eval/
+./eval_ic15.sh
+```
+
+### Evaluate the speed
+
+```shell script
+python test.py ${CONFIG_FILE} ${CHECKPOINT_FILE} --report_speed
+```
+For example:
+```shell script
+python test.py config/pan/pan_r18_ic15.py checkpoints/pan_r18_ic15/checkpoint.pth.tar --report_speed
+```
+
+### Visualization
+
+```shell script
+python test.py ${CONFIG_FILE} ${CHECKPOINT_FILE} --vis
+```
+For example:
+```shell script
+python test.py config/pan/pan_r18_ic15.py checkpoints/pan_r18_ic15/checkpoint.pth.tar --vis
+```
+
+
+## Citation
+
+Please cite the related works in your publications if it helps your research:
+
+### PSENet
+
+```
+@inproceedings{wang2019shape,
+  title={Shape Robust Text Detection with Progressive Scale Expansion Network},
+  author={Wang, Wenhai and Xie, Enze and Li, Xiang and Hou, Wenbo and Lu, Tong and Yu, Gang and Shao, Shuai},
+  booktitle={Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition},
+  pages={9336--9345},
+  year={2019}
+}
+```
+
+### PAN
+
+```
+@inproceedings{wang2019efficient,
+  title={Efficient and Accurate Arbitrary-Shaped Text Detection with Pixel Aggregation Network},
+  author={Wang, Wenhai and Xie, Enze and Song, Xiaoge and Zang, Yuhang and Wang, Wenjia and Lu, Tong and Yu, Gang and Shen, Chunhua},
+  booktitle={Proceedings of the IEEE International Conference on Computer Vision},
+  pages={8440--8449},
+  year={2019}
+}
+```
+
+### PAN++
+
+```
+@article{wang2021pan++,
+  title={PAN++: Towards Efficient and Accurate End-to-End Spotting of Arbitrarily-Shaped Text},
+  author={Wang, Wenhai and Xie, Enze and Li, Xiang and Liu, Xuebo and Liang, Ding and Zhibo, Yang and Lu, Tong and Shen, Chunhua},
+  journal={IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  year={2021},
+  publisher={IEEE}
+}
+```
+
+### FAST
+
+```
+@misc{chen2021fast,
+  title={FAST: Searching for a Faster Arbitrarily-Shaped Text Detector with Minimalist Kernel Representation}, 
+  author={Zhe Chen and Wenhai Wang and Enze Xie and ZhiBo Yang and Tong Lu and Ping Luo},
+  year={2021},
+  eprint={2111.02394},
+  archivePrefix={arXiv},
+  primaryClass={cs.CV}
+}
+```
+
+## License
+
+This project is developed and maintained by [IMAGINE Lab@National Key Laboratory for Novel Software Technology, Nanjing University](https://cs.nju.edu.cn/lutong/ImagineLab.html).
+
+<img src="logo.jpg" alt="IMAGINE Lab">
+
+This project is released under the [Apache 2.0 license](https://github.com/whai362/pan_pp.pytorch/blob/master/LICENSE).
+
+</div>
+</details>

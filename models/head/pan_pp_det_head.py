@@ -60,12 +60,8 @@ class PAN_PP_DetHead(nn.Module):
         out = self.conv2(out)
         return out
 
-    def get_results(self, out, img_meta, cfg):
-        resize_const, pos_const, len_const = map(float, [2.0, 0.2, 0.5])
-        results = {}
-        if cfg.report_speed:
-            torch.cuda.synchronize()
-            start = time.time()
+    def get_results(self, out, img_meta):
+        resize_const, pos_const, len_const = map(float, [2, 0.2, 0.5])
 
         score = torch.sigmoid(out[:, 0, :, :])
 
@@ -79,12 +75,16 @@ class PAN_PP_DetHead(nn.Module):
         score = score.data.cpu().numpy()[0].astype(np.float32)
         kernels = kernels.data.cpu().numpy()[0].astype(np.uint8)
         emb = emb.cpu().numpy()[0].astype(np.float32)
-
+        
+        cfg_min_kernel_area = 0.1
+        cfg_scale = 2
+        cfg_min_area = 260
+        cfg_min_score = 0.75
+        
         label = pa(kernels, emb,
-                   cfg.test_cfg.min_kernel_area / (cfg.test_cfg.scale**2))
-
-        org_img_size = img_meta['org_img_size'][0]
-        img_size = img_meta['img_size'][0]
+                   cfg_min_kernel_area / (cfg_scale**2))
+        org_img_size = img_meta['org_img_size']
+        img_size = img_meta['img_size']
 
         label_num = np.max(label) + 1
         scale = np.array((float(org_img_size[1]) / float(img_size[1]), float(org_img_size[0]) / float(img_size[0])), dtype=np.float32)
@@ -93,12 +93,9 @@ class PAN_PP_DetHead(nn.Module):
                            interpolation=cv2.INTER_NEAREST)
         score = cv2.resize(score, (int(img_size[1]//resize_const), int(img_size[0]//resize_const)),
                            interpolation=cv2.INTER_NEAREST)
-
-        min_area = cfg.test_cfg.min_area / ((cfg.test_cfg.scale**2) * (resize_const**2))
-        bboxes = boxgen(label, score, label_num, min_area, cfg.test_cfg.min_score, scale, pos_const, len_const)
-
-        results['bboxes'] = bboxes
-        return results
+        min_area = cfg_min_area / ((cfg_scale**2) * (resize_const**2))
+        bboxes = boxgen(label, score, label_num, min_area, cfg_min_score, scale, pos_const, len_const)
+        return bboxes
 
     def loss(self, out, gt_texts, gt_kernels, training_masks, gt_instances,
              gt_bboxes):
@@ -107,7 +104,6 @@ class PAN_PP_DetHead(nn.Module):
         embs = out[:, 2:, :, :]
 
         selected_masks = ohem_batch(texts, gt_texts, training_masks)
-        # loss_text = dice_loss(texts, gt_texts, selected_masks, reduce=False)
         loss_text = self.text_loss(texts,
                                    gt_texts,
                                    selected_masks,

@@ -2,6 +2,7 @@ import time
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 from .backbone import build_backbone
 from .head import build_head
@@ -29,12 +30,13 @@ class PAN_PP(nn.Module):
             self.fpem4 = build_neck(neck)
 
         self.det_head = build_head(detection_head)
+        self.identity = nn.Identity()
         self.rec_head = None
         if recognition_head:
             self.rec_head = build_head(recognition_head)
 
     def _upsample(self, x, size, scale=1):
-        _, _, H, W = size
+        _, _, H, W = size.size()
         upsample = nn.Upsample(size=(H // scale, W // scale), mode='bilinear')
         return upsample(x)
 
@@ -73,23 +75,14 @@ class PAN_PP(nn.Module):
             pass
 
         # FFM
-        f2 = self._upsample(f2, f1.size())
-        f3 = self._upsample(f3, f1.size())
-        f4 = self._upsample(f4, f1.size())
+        f2 = self._upsample(f2, f1)
+        f3 = self._upsample(f3, f1)
+        f4 = self._upsample(f4, f1)
         f = torch.cat((f1, f2, f3, f4), 1)
 
         # detection
         out_det = self.det_head(f)
 
-        if self.training:
-            out_det = self._upsample(out_det, imgs.size())
-            loss_det = self.det_head.loss(
-                out_det, gt_texts, gt_kernels, training_masks,
-                gt_instances, gt_bboxes)
-            outputs.update(loss_det)
-        else:
-            out_det = self._upsample(out_det, imgs.size(), cfg.test_cfg.scale)
-            res_det = self.det_head.get_results(out_det, img_metas, cfg)
-            outputs.update(res_det)
-
-        return outputs
+        scale = 2
+        out_det = self._upsample(out_det, imgs, scale)
+        return self.identity(out_det)
