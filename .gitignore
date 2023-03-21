@@ -34,3 +34,6 @@ ckpt_key_set.py
 .DS_Store
 
 *.csv
+
+results/evaluation/CLEval_1024/gt/
+results/evaluation/CLEval_1024/result/
