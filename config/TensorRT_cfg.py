@@ -31,7 +31,7 @@ model = dict(
         use_coordconv=False,
     )
 )
-data = './TestData/image/1546387085517921.jpg'
+data = './data/TestData/image/1546387085517921.jpg'
 test_cfg = dict(
     min_score=0.75,
     min_area=260,
