@@ -35,5 +35,5 @@ ckpt_key_set.py
 
 *.csv
 
-evaluation/CLEval_1024/gt/
-evaluation/CLEval_1024/result/
+evaluation/CLEval_1024/gt
+evaluation/CLEval_1024/result
