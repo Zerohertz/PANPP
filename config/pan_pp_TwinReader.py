@@ -29,7 +29,6 @@ model = dict(
             loss_weight=0.25
         ),
         use_coordconv=False,
-#         use_coordconv=True,
     )
 )
 data = dict(
@@ -69,5 +68,5 @@ test_cfg = dict(
     scale=2,
     bbox_type='rect',
     result_path='outputs',
-    pretrain='pretrained/doc_panpp_best_weight.pth.tar', # Main
+    pretrain='pretrained/doc_panpp_best_weight.pth.tar',
 )

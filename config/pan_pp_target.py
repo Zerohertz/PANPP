@@ -29,7 +29,6 @@ model = dict(
             loss_weight=0.25
         ),
         use_coordconv=False,
-#         use_coordconv=True,
     )
 )
 data = dict(
@@ -50,7 +49,6 @@ data = dict(
         short_size=1024,
         read_type='cv2',
         with_rec=False,
-#         data='/home/jovyan/local/1_user/hgoh@agilesoda.ai/TwinReader/PANPP/data/TestData/image/'
         data='/home/jovyan/local/1_user/hgoh@agilesoda.ai/TwinReader/PANPP/data/Target/'
     )
 )
@@ -70,8 +68,6 @@ test_cfg = dict(
     scale=2,
     bbox_type='rect',
     result_path='outputs/target',
-#     pretrain='pretrained/doc_panpp_best_weight.pth.tar', # Main
-#     pretrain='./checkpoints/pan_pp_test/checkpoint.pth.tar', # tmp
-    pretrain='./checkpoints/pan_pp_test/checkpoint_200ep.pth.tar', # tmp
-#     pretrain='./checkpoints/pan_pp_test_FPEMs_4_CC/checkpoint_110ep.pth.tar', # 4 stacked FPEMs & CoordConv
+    pretrain='pretrained/doc_panpp_best_weight.pth.tar', # Main
+    # pretrain='checkpoints/pan_pp_test/checkpoint_200ep.pth.tar', # tmp
 )
