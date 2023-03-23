@@ -82,8 +82,7 @@ cdef np.ndarray[np.int32_t, ndim=2] _boxgen(np.ndarray[np.int32_t, ndim=2] label
         length += len_const
         pos, length = pos*scale, length*scale
         bbox = cv2.boxPoints((pos, length, deg))
-#        bboxes = np.append(bboxes, bbox.astype('int32').reshape(1, 4, 2), axis=0)
-        bboxes = np.append(bboxes, np.round(bbox, 2).reshape(1, 4, 2), axis=0)
+        bboxes = np.append(bboxes, bbox.astype('int32').reshape(1, 4, 2), axis=0)
         tmp += int(area[i])
     return bboxes
 
