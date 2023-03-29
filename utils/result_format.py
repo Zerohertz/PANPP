@@ -30,20 +30,18 @@ class ResultFormat(object):
         words = None
         if 'words' in outputs:
             words = outputs['words']
-        print()
         img=cv2.imread(image_path)
         file_name = '%s.txt' % img_name
         file_path = osp.join(tmp_folder, file_name)
         with open(file_path, 'w') as f:
             for i, bbox in enumerate(bboxes):        
-                poly = np.array(bbox).astype(np.int32).reshape((-1))
+                poly = np.array(bbox).reshape((-1))
                 poly[poly<0]=0
                 strResult = '\t'.join([str(p) for p in poly]) #+ ',' + str(scores[i]) 
                 result=strResult + '\r\n'
                 f.write(result)
                 #f.write(str(scores[i]))
                 poly = poly.reshape(-1, 2)
-                cv2.polylines(img, [poly.reshape((-1, 1, 2))], True, color=(0, 0, 255), thickness=2)
+                cv2.polylines(img, [poly.astype(np.int32).reshape((-1, 1, 2))], True, color=(0, 0, 255), thickness=2)
         result_name='%s.jpg' % img_name
         cv2.imwrite(os.path.join(self.result_path,result_name), img)
-
