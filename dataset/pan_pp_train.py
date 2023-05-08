@@ -75,8 +75,9 @@ def random_horizontal_flip(imgs):
 
 
 def random_rotate(imgs):
-    max_angle = 10
+    max_angle = 5
     angle = random.random() * 2 * max_angle - max_angle
+    angle = angle + 90*random.randrange(0, 4)
     for i in range(len(imgs)):
         img = imgs[i]
         w, h = img.shape[:2]
@@ -107,7 +108,7 @@ def scale_aligned(img, h_scale, w_scale):
 def random_scale(img, min_size, short_size=736):
     h, w = img.shape[0:2]
 
-    scale = np.random.choice(np.array([0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3]))
+    scale = np.random.choice(np.array([0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 2, 3, 4, 5]))
     scale = (scale * short_size) / min(h, w)
 
     aspect = np.random.choice(np.array([0.9, 0.95, 1.0, 1.05, 1.1]))
@@ -409,7 +410,7 @@ if __name__ == "__main__":
 
 
     data_loader = PAN_PP_TRAIN(split='train',
-                                is_transform=False,
+                                is_transform=True,
                                 img_size=736,
                                 short_size=736,
                                 kernel_scale=0.5,
@@ -431,7 +432,7 @@ if __name__ == "__main__":
             draw.line([(x1, y2),(x2, y2)], fill='red')
         name = str(random.randrange(100_000, 1_000_000))
         img.save('./DataLoaderViz/' + name + '.png')
-        cv2.imwrite('./DataLoaderViz/' + name + '_gt_texts.png', tmp['gt_texts'].numpy()/tmp['gt_texts'].numpy().max()*255)
-        cv2.imwrite('./DataLoaderViz/' + name + '_gt_kernels.png', tmp['gt_kernels'][0,:,:].numpy()/tmp['gt_kernels'][0,:,:].numpy().max()*255)
-        cv2.imwrite('./DataLoaderViz/' + name + '_training_masks.png', tmp['training_masks'].numpy()/tmp['training_masks'].numpy().max()*255)
-        cv2.imwrite('./DataLoaderViz/' + name + '_gt_instances.png', tmp['gt_instances'].numpy()/tmp['gt_instances'].numpy().max()*255)
+        # cv2.imwrite('./DataLoaderViz/' + name + '_gt_texts.png', tmp['gt_texts'].numpy()/tmp['gt_texts'].numpy().max()*255)
+        # cv2.imwrite('./DataLoaderViz/' + name + '_gt_kernels.png', tmp['gt_kernels'][0,:,:].numpy()/tmp['gt_kernels'][0,:,:].numpy().max()*255)
+        # cv2.imwrite('./DataLoaderViz/' + name + '_training_masks.png', tmp['training_masks'].numpy()/tmp['training_masks'].numpy().max()*255)
+        # cv2.imwrite('./DataLoaderViz/' + name + '_gt_instances.png', tmp['gt_instances'].numpy()/tmp['gt_instances'].numpy().max()*255)
