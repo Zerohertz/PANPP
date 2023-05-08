@@ -97,7 +97,7 @@ def scale_aligned(img, h_scale, w_scale):
     img = cv2.resize(img, dsize=(w, h))
     '''
     from mmcv import Config
-    cfg = Config.fromfile('config/pan_pp/pan_pp_test.py')
+    cfg = Config.fromfile('config/pan_pp_test.py')
     from dataset import build_data_loader
     data_loader = build_data_loader(cfg.data.train)
     '''

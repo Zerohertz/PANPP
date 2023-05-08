@@ -8,6 +8,7 @@ import time
 
 import numpy as np
 import torch
+from torch.utils.tensorboard import SummaryWriter
 from mmcv import Config
 
 from dataset import build_data_loader
@@ -22,7 +23,7 @@ EPS = 1e-6
 
 '''
 from mmcv import Config
-cfg = Config.fromfile('config/pan_pp/pan_pp_test.py')
+cfg = Config.fromfile('config/pan_pp_test.py')
 from models import build_model
 model = build_model(cfg.model)
 import torch
@@ -109,6 +110,13 @@ def train(train_loader, model, optimizer, epoch, start_iter, cfg):
                   f'{losses_emb.avg:.3f}' \
                   f'IoU(text/kernel): {ious_text.avg:.3f}/{ious_kernel.avg:.3f}'
             print(log, flush=True)
+    return {'LR': optimizer.param_groups[0]["lr"],
+            'Loss': losses.avg,
+            'Loss_text': losses_text.avg,
+            'Loss_kernel': losses_kernels.avg,
+            'Loss_emb': losses_emb.avg,
+            'IoU (text)': ious_text.avg,
+            'IoU (kernel)': ious_kernel.avg}
 
 
 def adjust_learning_rate(optimizer, dataloader, epoch, iter, cfg):
@@ -217,10 +225,13 @@ def main(args):
         model.load_state_dict(checkpoint['state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer'])
 
+    writer = SummaryWriter()
     for epoch in range(start_epoch, cfg.train_cfg.epoch):
         print('\nEpoch: [%d | %d]' % (epoch + 1, cfg.train_cfg.epoch))
         
-        train(train_loader, model, optimizer, epoch, start_iter, cfg)
+        tmp = train(train_loader, model, optimizer, epoch, start_iter, cfg)
+        for i, j in tmp.items():
+            writer.add_scalar(i, j, epoch)
 
         state = dict(epoch=epoch + 1,
                      iter=0,
