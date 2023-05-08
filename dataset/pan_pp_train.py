@@ -247,7 +247,8 @@ class PAN_PP_TRAIN(data.Dataset):
                  kernel_scale=0.5,
                  with_rec=False,
                  read_type='pil',
-                 report_speed=False):
+                 report_speed=False,
+                 viz_mode=False):
         self.split = split
         self.is_transform = is_transform
 
@@ -283,6 +284,7 @@ class PAN_PP_TRAIN(data.Dataset):
         self.voc, self.char2id, self.id2char = get_vocabulary('LOWERCASE')
         self.max_word_num = 1000 #200
         self.max_word_len = 48 #32
+        self.viz_mode = viz_mode
 
     def __len__(self):
         return self.img_num
@@ -304,7 +306,7 @@ class PAN_PP_TRAIN(data.Dataset):
             if word == '???':
                 continue
             word = word.lower()
-            gt_word = np.full((self.max_word_len,), self.char2id['PAD'], dtype=np.int)
+            gt_word = np.full((self.max_word_len,), self.char2id['PAD'], dtype=np.int32)
             for j, char in enumerate(word):
                 if j > self.max_word_len - 1:
                     break
@@ -322,7 +324,7 @@ class PAN_PP_TRAIN(data.Dataset):
         if self.is_transform:
             img = random_scale(img, self.img_size[0], self.short_size)
 
-        gt_instance = np.zeros(img.shape[0:2], dtype='uint8')
+        gt_instance = np.zeros(img.shape[0:2], dtype='int32')
         training_mask = np.ones(img.shape[0:2], dtype='uint8')
         if len(bboxes) > 0:
             if type(bboxes) == list:
@@ -378,8 +380,9 @@ class PAN_PP_TRAIN(data.Dataset):
             img = Image.fromarray(img)
             img = img.convert('RGB')
 
-        img = transforms.ToTensor()(img)
-        img = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])(img)
+        if not self.viz_mode:
+            img = transforms.ToTensor()(img)
+            img = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])(img)
 
         gt_text = torch.from_numpy(gt_text).long()
         gt_kernels = torch.from_numpy(gt_kernels).long()
@@ -399,3 +402,36 @@ class PAN_PP_TRAIN(data.Dataset):
         )
 
         return data
+
+if __name__ == "__main__":
+    import random
+    from PIL import ImageDraw
+
+
+    data_loader = PAN_PP_TRAIN(split='train',
+                                is_transform=False,
+                                img_size=736,
+                                short_size=736,
+                                kernel_scale=0.5,
+                                with_rec=False,
+                                read_type='pil',
+                                report_speed=False,
+                                viz_mode=True)
+    for tmp in data_loader:
+        img = tmp['imgs']
+        gt = tmp['gt_bboxes'].numpy()
+        draw = ImageDraw.Draw(img)
+        for g in gt:
+            if g[0] == g[2] and g[1] == g[3]:
+                continue
+            y1, x1, y2, x2 = g
+            draw.line([(x1, y1),(x2, y1)], fill='red')
+            draw.line([(x1, y1),(x1, y2)], fill='red')
+            draw.line([(x2, y1),(x2, y2)], fill='red')
+            draw.line([(x1, y2),(x2, y2)], fill='red')
+        name = str(random.randrange(100_000, 1_000_000))
+        img.save('./DataLoaderViz/' + name + '.png')
+        cv2.imwrite('./DataLoaderViz/' + name + '_gt_texts.png', tmp['gt_texts'].numpy()/tmp['gt_texts'].numpy().max()*255)
+        cv2.imwrite('./DataLoaderViz/' + name + '_gt_kernels.png', tmp['gt_kernels'][0,:,:].numpy()/tmp['gt_kernels'][0,:,:].numpy().max()*255)
+        cv2.imwrite('./DataLoaderViz/' + name + '_training_masks.png', tmp['training_masks'].numpy()/tmp['training_masks'].numpy().max()*255)
+        cv2.imwrite('./DataLoaderViz/' + name + '_gt_instances.png', tmp['gt_instances'].numpy()/tmp['gt_instances'].numpy().max()*255)
