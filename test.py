@@ -12,9 +12,6 @@ from models import build_model
 from models.utils import fuse_module
 from utils import AverageMeter, Corrector, ResultFormat, Visualizer
 
-import time
-import csv
-
 
 def model_structure(model):
     blank = ' '
@@ -75,14 +72,9 @@ def test(test_loader, model, cfg):
         data['imgs'] = data['imgs'].cuda()
         data.update(dict(cfg=cfg))
         
-        start = time.time()
         # forward
         with torch.no_grad():
             outputs = model(**data)
-        end = time.time()
-        with open('./results/time/tmp.csv', 'a', encoding='utf8') as f:
-            wr = csv.writer(f)
-            wr.writerow([end - start])
 
         # save result
         image_name, _ = osp.splitext(osp.basename(test_loader.dataset.img_paths[idx]))
