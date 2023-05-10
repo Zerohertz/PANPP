@@ -23,7 +23,7 @@ class ResultFormat(object):
             os.makedirs(self.result_path + '/emb')
             os.makedirs(self.result_path + '/label')
 
-    def write_result(self, img_name,image_path, outputs):
+    def write_result(self, img_name, image_path, outputs):
         self._write_result_ic15(img_name,image_path, outputs)
 
     def _write_result_ic15(self, img_name, image_path, outputs):
