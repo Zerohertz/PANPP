@@ -441,6 +441,6 @@ if __name__ == "__main__":
         cv2.imwrite('./DataLoaderViz/' + name + '_gt_texts.png', tmp['gt_texts'].numpy()/(tmp['gt_texts'].numpy().max()+0.00001)*255)
         cv2.imwrite('./DataLoaderViz/' + name + '_gt_kernels.png', tmp['gt_kernels'][0,:,:].numpy()/(tmp['gt_kernels'][0,:,:].numpy().max()+0.00001)*255)
         # cv2.imwrite('./DataLoaderViz/' + name + '_training_masks.png', tmp['training_masks'].numpy()/(tmp['training_masks'].numpy().max()+0.00001)*255)
-        cv2.imwrite('./DataLoaderViz/' + name + '_gt_instances.png', tmp['gt_instances'].numpy()/(tmp['gt_instances'].numpy().max()+0.00001)*255)
+        cv2.imwrite('./DataLoaderViz/' + name + '_gt_instances.png', cv2.applyColorMap((tmp['gt_instances'].numpy()/(tmp['gt_instances'].numpy().max()+0.00001)*255).astype(np.uint8), cv2.COLORMAP_JET))
         if i > 10:
             break
