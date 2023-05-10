@@ -56,6 +56,9 @@ cdef np.ndarray[np.float32_t, ndim=2] _boxgen(np.ndarray[np.int32_t, ndim=2] lab
     tmp = 0
     for i in range(1, label_num):
         idx = int(area[i])
+        if idx < 0:
+            continue
+
         if area[i] < min_area:
             tmp += int(area[i])
             label[inds[i]] = 0
