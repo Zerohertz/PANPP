@@ -76,12 +76,17 @@ class PAN_PP_DetHead(nn.Module):
         emb = out[:, 2:, :, :]
         emb = emb * text_mask.float()
 
-        score = score.data.cpu().numpy()[0].astype(np.float32)
-        kernels = kernels.data.cpu().numpy()[0].astype(np.uint8)
-        emb = emb.cpu().numpy()[0].astype(np.float32)
+        score = score.data.cpu().numpy()[0].astype(np.float32) # 1 Channel
+        kernels = kernels.data.cpu().numpy()[0].astype(np.uint8) # 2 Channel
+        emb = emb.cpu().numpy()[0].astype(np.float32) # 4 Channel
 
         label = pa(kernels, emb,
                    cfg.test_cfg.min_kernel_area / (cfg.test_cfg.scale**2))
+
+        results['score'] = score
+        results['kernels'] = kernels
+        results['emb'] = emb
+        results['label'] = label
 
         org_img_size = img_meta['org_img_size'][0]
         img_size = img_meta['img_size'][0]
