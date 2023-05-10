@@ -57,6 +57,9 @@ cdef np.ndarray[np.float32_t, ndim=2] _boxgen(np.ndarray[np.int32_t, ndim=2] lab
     deg = 0
     for i in range(1, label_num):
         idx = int(area[i])
+        if idx < 0:
+            continue
+
         if area[i] < min_area:
             tmp += int(area[i])
             label[inds[i]] = 0
@@ -79,7 +82,7 @@ cdef np.ndarray[np.float32_t, ndim=2] _boxgen(np.ndarray[np.int32_t, ndim=2] lab
             deg += tmpdeg
             length = np.append(length, np.array(length_t, dtype=np.float32).reshape(1, 2) + len_const, axis=0)
         tmp += int(area[i])
-    
+
     j = len(pos)
     deg = deg / j
     for i in range(j):
