@@ -68,14 +68,14 @@ def get_ann_tt(img, gt_path):
     return bboxes, words
 
 def random_horizontal_flip(imgs):
-    if random.random() < 0.5:
+    if random.random() < 0.1:
         for i in range(len(imgs)):
             imgs[i] = np.flip(imgs[i], axis=1).copy()
     return imgs
 
 
 def random_rotate(imgs):
-    max_angle = 5
+    max_angle = 1
     angle = random.random() * 2 * max_angle - max_angle
     angle = angle + 90*random.randrange(0, 4)
     for i in range(len(imgs)):
@@ -406,9 +406,15 @@ class PAN_PP_TRAIN(data.Dataset):
 
 if __name__ == "__main__":
     import random
+    import shutil
     from PIL import ImageDraw
 
 
+    try:
+        shutil.rmtree('DataLoaderViz')
+    except:
+        print('Already DataLoaderViz Removed')
+    os.mkdir('DataLoaderViz')
     data_loader = PAN_PP_TRAIN(split='train',
                                 is_transform=True,
                                 img_size=736,
@@ -418,7 +424,7 @@ if __name__ == "__main__":
                                 read_type='pil',
                                 report_speed=False,
                                 viz_mode=True)
-    for tmp in data_loader:
+    for i, tmp in enumerate(data_loader):
         img = tmp['imgs']
         gt = tmp['gt_bboxes'].numpy()
         draw = ImageDraw.Draw(img)
@@ -432,7 +438,9 @@ if __name__ == "__main__":
             draw.line([(x1, y2),(x2, y2)], fill='red')
         name = str(random.randrange(100_000, 1_000_000))
         img.save('./DataLoaderViz/' + name + '.png')
-        # cv2.imwrite('./DataLoaderViz/' + name + '_gt_texts.png', tmp['gt_texts'].numpy()/tmp['gt_texts'].numpy().max()*255)
-        # cv2.imwrite('./DataLoaderViz/' + name + '_gt_kernels.png', tmp['gt_kernels'][0,:,:].numpy()/tmp['gt_kernels'][0,:,:].numpy().max()*255)
-        # cv2.imwrite('./DataLoaderViz/' + name + '_training_masks.png', tmp['training_masks'].numpy()/tmp['training_masks'].numpy().max()*255)
-        # cv2.imwrite('./DataLoaderViz/' + name + '_gt_instances.png', tmp['gt_instances'].numpy()/tmp['gt_instances'].numpy().max()*255)
+        cv2.imwrite('./DataLoaderViz/' + name + '_gt_texts.png', tmp['gt_texts'].numpy()/(tmp['gt_texts'].numpy().max()+0.00001)*255)
+        cv2.imwrite('./DataLoaderViz/' + name + '_gt_kernels.png', tmp['gt_kernels'][0,:,:].numpy()/(tmp['gt_kernels'][0,:,:].numpy().max()+0.00001)*255)
+        # cv2.imwrite('./DataLoaderViz/' + name + '_training_masks.png', tmp['training_masks'].numpy()/(tmp['training_masks'].numpy().max()+0.00001)*255)
+        cv2.imwrite('./DataLoaderViz/' + name + '_gt_instances.png', tmp['gt_instances'].numpy()/(tmp['gt_instances'].numpy().max()+0.00001)*255)
+        if i > 10:
+            break
