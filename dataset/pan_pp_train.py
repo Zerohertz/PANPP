@@ -77,7 +77,7 @@ def random_horizontal_flip(imgs):
 def random_rotate(imgs):
     max_angle = 1
     angle = random.random() * 2 * max_angle - max_angle
-    angle = angle + 90*random.randrange(0, 4)
+    # angle = angle + 90*random.randrange(0, 4)
     for i in range(len(imgs)):
         img = imgs[i]
         w, h = img.shape[:2]
