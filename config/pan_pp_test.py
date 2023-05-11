@@ -8,7 +8,7 @@ model = dict(
         type='FPEM_v2',
         in_channels=(256, 512, 1024, 2048),
         out_channels=128,
-        fpems=2
+        fpems=4
     ),
     detection_head=dict(
         type='PAN_PP_DetHead',
@@ -53,8 +53,7 @@ data = dict(
     )
 )
 train_cfg = dict(
-#     lr=1e-3,
-    lr=1e-2,
+    lr=1e-5,
     schedule='polylr',
     epoch=200,
     optimizer='Adam',
@@ -68,6 +67,6 @@ test_cfg = dict(
     scale=2,
     bbox_type='rect',
     result_path='outputs',
-    pretrain='pretrained/doc_panpp_best_weight.pth.tar', # Main
+    pretrain='pretrained/twrd-std-v2-kr-doc.tar', # Main
     # pretrain='checkpoints/pan_pp_test/checkpoint_200ep.pth.tar', # tmp
 )

@@ -53,13 +53,12 @@ data = dict(
     )
 )
 train_cfg = dict(
-#     lr=1e-3,
-    lr=1e-2,
+    lr=1e-5,
     schedule='polylr',
     epoch=200,
     optimizer='Adam',
     use_ex=False,
-    pretrain='pretrained/doc_panpp_best_weight.pth.tar',
+    pretrain='pretrained/twrd-std-v2-kr-doc.tar',
 )
 test_cfg = dict(
     min_score=0.75,
@@ -68,5 +67,5 @@ test_cfg = dict(
     scale=2,
     bbox_type='rect',
     result_path='outputs',
-    pretrain='pretrained/doc_panpp_best_weight.pth.tar',
+    pretrain='pretrained/twrd-std-v2-kr-doc.tar',
 )
