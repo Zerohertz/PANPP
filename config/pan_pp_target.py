@@ -58,7 +58,7 @@ train_cfg = dict(
     epoch=200,
     optimizer='Adam',
     use_ex=False,
-    pretrain='pretrained/doc_panpp_best_weight.pth.tar',
+    pretrain='pretrained/twrd-std-v2-kr-doc.tar',
 )
 test_cfg = dict(
     min_score=0.75,
