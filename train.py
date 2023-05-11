@@ -168,7 +168,7 @@ def main(args):
     train_loader = torch.utils.data.DataLoader(
         data_loader,
         batch_size=cfg.data.batch_size,
-        num_workers=16,
+        num_workers=64,
         drop_last=True,
         pin_memory=True)
 
@@ -209,12 +209,18 @@ def main(args):
         model.load_state_dict(pretrained_dict, False)
         for n, p in model.named_parameters():
             print(n, p.requires_grad)
+            '''
             if 'fpem3' in n or 'fpem4' in n:
                 p.requires_grad = True
             elif 'det_head' in n:
                 p.requires_grad = True
             else:
                 p.requires_grad = False
+            '''
+            if 'backbone' in n:
+                p.requires_grad = False
+            else:
+                p.requires_grad = True
             print(n, p.requires_grad)
     if args.resume:
         assert osp.isfile(args.resume), 'Error: no checkpoint directory found!'
