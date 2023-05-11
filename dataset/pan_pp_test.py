@@ -11,7 +11,6 @@ import math
 import string
 import scipy.io as scio
 import mmcv
-import time
 from mmcv.parallel import DataContainer as DC
 
 
@@ -107,7 +106,6 @@ class PAN_PP_TEST(data.Dataset):
         return len(self.img_paths)
 
     def prepare_test_data(self, index):
-        start=time.time()
         img_path = self.img_paths[index]
         img = get_img(img_path, self.read_type)
         img_meta = dict(
